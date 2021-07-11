@@ -1,0 +1,46 @@
+---
+title: "Dyare_to_r_example"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Dynare to r example}
+
+
+library(R.matlab)
+library(tidyverse)
+library(devtools)
+library(matlabr)
+library(stringr)
+library(stringi)
+
+load_all(path = "C:/Users/yaako/Google Drive/Work/BOI/r_package/my.package")
+
+path = "C:\\Users\\yaako\\Google Drive\\Work\\BOI\\Hybrid Forecasting\\dfm\\m_mod\\estimated\\calibrated_9_u.mod"
+
+log = run_dynare(path)
+
+data = readMat("C:\\Users\\yaako\\Google Drive\\Work\\BOI\\Hybrid Forecasting\\dfm\\m_mod\\estimated\\calibrated_9_u_results.mat")
+
+sim = tidy_dn(data, "1992/1/1") |> chuck("s")
+
+
+sim |> select(date, pie, pie.core) |>
+  filter(date > "2014/1/1") |> 
+  pivot_longer(-date) |> 
+  ggplot(aes(x = date, y = value, color = name)) + geom_line()
+
+sim |> select(date, pie, pie.core, pie4.core = pie4) |>
+  filter(date > "2014/1/1") |> 
+  mutate(pie4 = 0.25*(pie + lag(pie)+
+                        lag(pie,2) + 
+                        lag(pie,3))) |> 
+  select(date, pie4.core, pie4) |>
+  pivot_longer(-date) |> 
+  ggplot(aes(x = date, y = value, color = name)) + geom_line()
+
+
+```
